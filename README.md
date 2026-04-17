@@ -1,4 +1,4 @@
-# monitoring-dashboard
+# Monitoring dashboard
 
 A Streamlit-based macro monitoring dashboard for China and Japan. Built on top of the [`haver-data`](https://github.com/jasonzhixinglu/haver-data) upstream repo, which supplies the underlying parquet time-series files.
 
