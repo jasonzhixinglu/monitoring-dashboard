@@ -53,12 +53,27 @@ def extract_factor(
     pca_cols: if provided, only these columns enter PCA; all columns still get
               residuals and R² computed against the estimated factor.
 
+    Missing-data contract
+    ─────────────────────
+    • No imputation or forward-fill is performed at any stage.
+    • PCA uses listwise deletion: only rows where every pca_col is non-null
+      (after standardisation and optional outlier removal) are used to fit the
+      eigenvectors.  The factor is NaN for all other rows.
+    • Consequence: the factor's latest non-null date equals the most recent date
+      on which every PCA-eligible indicator has a real observation.  If one series
+      lags by a month the factor will also lag by a month.
+    • Residuals and R² are computed only where both the indicator and the factor
+      are non-null (inner join on date).  No extrapolation is performed.
+    • Surprises (AR(1) residuals of OLS residuals) follow the same rule —
+      computed only on real data.
+
     Returns dict with keys:
-        factor      — date-indexed pd.Series (mean-0, variance-1)
-        loadings    — {indicator: loading}
-        r_squared   — {indicator: R²}
-        residuals   — pd.DataFrame (date x indicators)
-        surprises   — pd.DataFrame (date x indicators)
+        factor      — date-indexed pd.Series (mean-0, variance-1); NaN where any
+                      PCA input was missing
+        loadings    — {indicator: loading}  (PCA-eligible cols only)
+        r_squared   — {indicator: R²}  (all indicator cols)
+        residuals   — pd.DataFrame (date × indicators); NaN where data missing
+        surprises   — pd.DataFrame (date × indicators); NaN where data missing
 
     Raises ValueError if PCA cannot be computed.
     """
@@ -66,7 +81,7 @@ def extract_factor(
     pca_cols = pca_cols if pca_cols is not None else all_indicator_cols
     panel = df.set_index("date")[all_indicator_cols].copy()
 
-    # Standardize full panel
+    # Standardize full panel (no imputation — NaN rows stay NaN)
     std_panel = _standardize(panel)
     if remove_outliers_flag:
         std_panel = remove_outliers(std_panel)
@@ -81,7 +96,7 @@ def extract_factor(
 
     pca_panel = std_panel[pca_eligible]
 
-    # Listwise deletion for PCA fit
+    # Listwise deletion: drop any row where any PCA column is NaN
     clean = pca_panel.dropna()
     min_rows = max(10, 2 * len(pca_eligible))
     if len(clean) < min_rows:
@@ -100,7 +115,7 @@ def extract_factor(
     if pc1.mean() < 0:
         pc1 = -pc1
 
-    # Project onto PCA panel (NaN preserved where data missing)
+    # Project only the clean rows; factor is NaN everywhere else (no fill)
     factor_clean = X @ pc1
     factor_clean = (factor_clean - factor_clean.mean()) / factor_clean.std()
     factor = pd.Series(np.nan, index=panel.index, dtype=float)
@@ -109,6 +124,7 @@ def extract_factor(
     loadings = {col: float(pc1[i]) for i, col in enumerate(pca_eligible)}
 
     # Per-indicator residuals and surprises for ALL indicator columns
+    # Inner join with factor — no extrapolation into NaN regions
     r_squared, residuals_dict, surprises_dict = {}, {}, {}
     for col in all_indicator_cols:
         both = pd.DataFrame({"y": std_panel[col], "f": factor}).dropna()
