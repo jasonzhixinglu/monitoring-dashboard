@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import type { NowcastCountry, NowcastData, NowcastYearWindow } from "../../types";
 import { useNowcastData } from "../../hooks/useNowcastData";
@@ -10,16 +10,25 @@ interface Props {
   yearWindow: NowcastYearWindow;
 }
 
+function useIsMobile(breakpoint = 768): boolean {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 function NowcastSnapshot({ data }: { data: NowcastData }) {
   const { nowcast_value, nowcast_ci, vintage_date, nowcast_quarter } = data;
   const sep = "─".repeat(34);
   const lines = [
-    `Nowcast (${nowcast_quarter})`,
+    "GDP Nowcast",
     sep,
-    `${"Nowcast Value".padEnd(18)} ${nowcast_value.toFixed(2)}% QOQAR`,
+    `${nowcast_quarter.padEnd(18)} ${nowcast_value.toFixed(2)}% QOQAR`,
     `${"95% CI".padEnd(18)} [${nowcast_ci[0].toFixed(2)}, ${nowcast_ci[1].toFixed(2)}]`,
     `${"As of".padEnd(18)} ${vintage_date}`,
-    `${"Quarter".padEnd(18)} ${nowcast_quarter}`,
   ];
   return (
     <div className="bg-gray-950 rounded-lg p-4 h-full">
@@ -31,6 +40,7 @@ function NowcastSnapshot({ data }: { data: NowcastData }) {
 export function NowcastPage({ country, yearWindow }: Props) {
   const { data, loading, error } = useNowcastData(country);
   const [diagOpen, setDiagOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // All hooks must be called unconditionally before any early returns
   const derived = useMemo(() => {
@@ -146,13 +156,17 @@ export function NowcastPage({ country, yearWindow }: Props) {
         {surpCols.length > 0 && (
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           <Plot
-            data={[{ z: heatZ, x: last24SurpDates, y: surpCols, type: "heatmap", colorscale: "RdBu", zmid: 0, showscale: true } as any]}
+            data={[{
+              z: heatZ, x: last24SurpDates, y: surpCols, type: "heatmap",
+              colorscale: "RdBu", zmid: 0, showscale: true,
+              ...(isMobile ? { colorbar: { thickness: 10, len: 0.6 } } : {}),
+            } as any]}
             layout={{
-              title: { text: "Surprises (last 24 months)", font: { color: "#e5e7eb", size: 13 } },
+              title: { text: "Surprises (last 24 months)", font: { color: "#e5e7eb", size: isMobile ? 12 : 13 } },
               paper_bgcolor: "#111827", plot_bgcolor: "#111827", font: { color: "#9ca3af" },
-              margin: { t: 35, r: 15, b: 60, l: 220 },
-              xaxis: { tickfont: { size: 9 }, tickangle: -45 },
-              yaxis: { tickfont: { size: 9 }, autorange: "reversed" },
+              margin: isMobile ? { t: 40, r: 30, b: 60, l: 150 } : { t: 35, r: 15, b: 60, l: 220 },
+              xaxis: { tickfont: { size: isMobile ? 8 : 9 }, tickangle: -45 },
+              yaxis: { tickfont: { size: isMobile ? 8 : 9 }, autorange: "reversed" },
               height: 280,
             }}
             config={{ displayModeBar: false, responsive: true }}
