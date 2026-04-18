@@ -26,6 +26,7 @@ export type Theme = "activity" | "inflation" | "pmis";
 export type YearWindow = 2 | 3 | 5 | 10 | 15 | 20;
 export type Mode = "monitoring" | "nowcasting";
 export type NowcastCountry = "US" | "Japan";
+export type NowcastYearWindow = 3 | 5 | 10 | 20;
 
 export interface NowcastSeriesData {
   dates: string[];

@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import Plot from "react-plotly.js";
-import type { NowcastCountry, NowcastData } from "../../types";
+import type { NowcastCountry, NowcastData, NowcastYearWindow } from "../../types";
 import { useNowcastData } from "../../hooks/useNowcastData";
 import { GDPChart } from "./GDPChart";
 import { VintageChart } from "./VintageChart";
 
 interface Props {
   country: NowcastCountry;
+  yearWindow: NowcastYearWindow;
 }
 
 function NowcastSnapshot({ data }: { data: NowcastData }) {
@@ -27,7 +28,7 @@ function NowcastSnapshot({ data }: { data: NowcastData }) {
   );
 }
 
-export function NowcastPage({ country }: Props) {
+export function NowcastPage({ country, yearWindow }: Props) {
   const { data, loading, error } = useNowcastData(country);
   const [diagOpen, setDiagOpen] = useState(false);
 
@@ -47,7 +48,9 @@ export function NowcastPage({ country }: Props) {
       return last24SurpDates.map((d) => dateMap.get(d) ?? null);
     });
 
-    const contribKeys = Object.keys(data.contributions).filter((k) => data.contributions[k] != null);
+    const contribKeys = Object.keys(data.contributions).filter(
+      (k) => data.contributions[k] != null && k !== "GDP Growth"
+    );
 
     const inputCols = Object.keys(data.input_data);
     const allInputDates = inputCols.length > 0
@@ -99,7 +102,7 @@ export function NowcastPage({ country }: Props) {
       {/* Top row: charts (left ~60%) + snapshot (right ~40%) */}
       <div className="flex flex-col md:grid md:grid-cols-5 gap-4">
         <div className="md:col-span-3 flex flex-col gap-3">
-          <GDPChart data={data} />
+          <GDPChart data={data} yearWindow={yearWindow} />
           <VintageChart data={data} />
         </div>
         <div className="md:col-span-2">

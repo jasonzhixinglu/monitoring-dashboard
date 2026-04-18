@@ -8239,7 +8239,17 @@
       ]
     }
   },
-  "contributions": {},
+  "contributions": {
+    "Industrial Production": 0.0767,
+    "Retail Sales": -0.1327,
+    "Manufacturing Shipments": 0.0772,
+    "Personal Consumption": -0.0551,
+    "Light Vehicle Sales": -0.1719,
+    "Insured Unemployment Rate": -0.1507,
+    "ISM Manufacturing PMI": 0.168,
+    "Consumer Confidence": 0.0712,
+    "GDP Growth": -0.0119
+  },
   "loadings": {
     "Industrial Production": [
       -0.4244,

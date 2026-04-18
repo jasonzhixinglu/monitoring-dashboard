@@ -1,6 +1,7 @@
-import type { Country, Theme, YearWindow, Mode, NowcastCountry } from "../types";
+import type { Country, Theme, YearWindow, Mode, NowcastCountry, NowcastYearWindow } from "../types";
 
 const YEAR_OPTIONS: YearWindow[] = [2, 3, 5, 10, 15, 20];
+const NOWCAST_YEAR_OPTIONS: NowcastYearWindow[] = [3, 5, 10, 20];
 
 interface Props {
   mode: Mode;
@@ -8,14 +9,16 @@ interface Props {
   theme: Theme;
   yearWindow: YearWindow;
   nowcastCountry: NowcastCountry;
+  nowcastYearWindow: NowcastYearWindow;
   onMode: (m: Mode) => void;
   onCountry: (c: Country) => void;
   onTheme: (t: Theme) => void;
   onYearWindow: (y: YearWindow) => void;
   onNowcastCountry: (c: NowcastCountry) => void;
+  onNowcastYearWindow: (y: NowcastYearWindow) => void;
 }
 
-export function Sidebar({ mode, country, theme, yearWindow, nowcastCountry, onMode, onCountry, onTheme, onYearWindow, onNowcastCountry }: Props) {
+export function Sidebar({ mode, country, theme, yearWindow, nowcastCountry, nowcastYearWindow, onMode, onCountry, onTheme, onYearWindow, onNowcastCountry, onNowcastYearWindow }: Props) {
   return (
     <aside className="w-full md:w-52 shrink-0 bg-gray-900 text-gray-100 flex flex-row flex-wrap items-end md:flex-col gap-3 md:gap-6 px-3 py-2 md:p-4 md:min-h-screen">
       <div className="hidden md:block text-lg font-semibold tracking-wide border-b border-gray-700 pb-2 w-full">
@@ -92,17 +95,32 @@ export function Sidebar({ mode, country, theme, yearWindow, nowcastCountry, onMo
           </div>
         </>
       ) : (
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400 uppercase tracking-wider">Country</label>
-          <select
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            value={nowcastCountry}
-            onChange={(e) => onNowcastCountry(e.target.value as NowcastCountry)}
-          >
-            <option value="US">United States</option>
-            <option value="Japan">Japan</option>
-          </select>
-        </div>
+        <>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-400 uppercase tracking-wider">Country</label>
+            <select
+              className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={nowcastCountry}
+              onChange={(e) => onNowcastCountry(e.target.value as NowcastCountry)}
+            >
+              <option value="US">United States</option>
+              <option value="Japan">Japan</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-400 uppercase tracking-wider">Year window</label>
+            <select
+              className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={nowcastYearWindow}
+              onChange={(e) => onNowcastYearWindow(Number(e.target.value) as NowcastYearWindow)}
+            >
+              {NOWCAST_YEAR_OPTIONS.map((y) => (
+                <option key={y} value={y}>{y} years</option>
+              ))}
+            </select>
+          </div>
+        </>
       )}
     </aside>
   );

@@ -92,22 +92,25 @@ def export_country(country: str) -> dict:
     except Exception:
         surprises_json = {}
 
-    # Contributions: approximate as loading * factor mean for Q1 2026
+    # Contributions: loading * Q1-2026 factor mean (factor_df has PeriodIndex)
     contributions = {}
     try:
         loadings = result["loadings"]
         factor_df = result["factor"]
-        q1_start = pd.Timestamp("2026-01-01")
+        q1_start = pd.Period("2026-01", freq="M")
         q1_factors = factor_df[factor_df.index >= q1_start]
         if not q1_factors.empty:
             f_mean = q1_factors.mean()
+            # factor_df columns may be '0'/'1' strings; use positional access
+            f1_val = float(f_mean.iloc[0])
+            f2_val = float(f_mean.iloc[1]) if len(f_mean) > 1 else 0.0
             for lbl in loadings.index:
                 row = loadings.loc[lbl]
-                contrib = float(row.get("Factor 1", 0) * f_mean.get("Factor 1", 0) +
-                                row.get("Factor 2", 0) * f_mean.get("Factor 2", 0))
+                contrib = float(row.get("Factor 1", 0) * f1_val +
+                                row.get("Factor 2", 0) * f2_val)
                 contributions[lbl] = _safe_float(contrib)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  Warning: contributions failed: {e}")
 
     # Loadings
     loadings_json = {}

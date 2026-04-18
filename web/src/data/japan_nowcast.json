@@ -8151,7 +8151,17 @@
       ]
     }
   },
-  "contributions": {},
+  "contributions": {
+    "Industrial Production": 0.0888,
+    "Retail Sales": 0.0485,
+    "Machinery Orders": 0.0401,
+    "Real Exports": 0.0941,
+    "Total Employment": -0.0562,
+    "Consumer Confidence": -0.0717,
+    "Markit Manufacturing PMI": -0.0358,
+    "Markit Services PMI": -0.0684,
+    "GDP Growth": 0.0067
+  },
   "loadings": {
     "Industrial Production": [
       -0.4454,
