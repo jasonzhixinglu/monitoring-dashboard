@@ -12,7 +12,7 @@ function fmtDate(isoDate: string): string {
 export function LatestSnapshot({ data }: Props) {
   const allCols = Object.keys(data.inputs);
 
-  const nameWidth = Math.max(...allCols.map((c) => c.length), 13) + 1;
+  const nameWidth = Math.max(...allCols.map((c) => c.length), "Common Factor (std dev)".length) + 1;
   const sep = "─".repeat(nameWidth + 10 + 9);
 
   const lines: string[] = [
@@ -34,7 +34,7 @@ export function LatestSnapshot({ data }: Props) {
     const fv = [...values].reverse().find((x) => x !== null) ?? null;
     const valStr = fv !== null ? fv.toFixed(3).padStart(8) : "       —";
     lines.push(sep);
-    lines.push(`${"Common Factor".padEnd(nameWidth)} ${valStr}  ${fmtDate(latest_date).padStart(7)}`);
+    lines.push(`${"Common Factor (std dev)".padEnd(nameWidth)} ${valStr}  ${fmtDate(latest_date).padStart(7)}`);
   }
 
   return (

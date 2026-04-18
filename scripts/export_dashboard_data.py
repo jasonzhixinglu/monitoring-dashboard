@@ -96,21 +96,20 @@ def export_theme(country: str, theme: str, indicators: list, vintage: str) -> di
         "inputs": inputs,
     }
 
-    if theme != "pmis":
-        pca_cols = [
-            display_label(ind["label"], ind["transform"])
-            for ind in indicators if ind.get("in_pca", True)
-        ]
-        result = extract_factor(df, remove_outliers_flag=True, pca_cols=pca_cols)
-        factor_series = result["factor"].reindex(df["date"].values)
-        payload["factor"] = {
-            "values": _series_to_list(factor_series),
-            "latest_date": _latest_date(factor_series.dropna()),
-        }
-        payload["diagnostics"] = {
-            "loadings": {k: round(v, 6) for k, v in result["loadings"].items()},
-            "r_squared": {k: round(v, 6) for k, v in result["r_squared"].items()},
-        }
+    pca_cols = [
+        display_label(ind["label"], ind["transform"])
+        for ind in indicators if ind.get("in_pca", True)
+    ]
+    result = extract_factor(df, remove_outliers_flag=True, pca_cols=pca_cols)
+    factor_series = result["factor"].reindex(df["date"].values)
+    payload["factor"] = {
+        "values": _series_to_list(factor_series),
+        "latest_date": _latest_date(factor_series.dropna()),
+    }
+    payload["diagnostics"] = {
+        "loadings": {k: round(v, 6) for k, v in result["loadings"].items()},
+        "r_squared": {k: round(v, 6) for k, v in result["r_squared"].items()},
+    }
 
     return payload
 
