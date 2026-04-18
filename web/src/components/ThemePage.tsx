@@ -68,6 +68,11 @@ function formatTable(data: ThemeData, indices: number[]): string {
   return [header, sep, ...rows].join("\n");
 }
 
+function displayTheme(theme: string): string {
+  if (theme === "pmis") return "PMIs";
+  return theme.charAt(0).toUpperCase() + theme.slice(1);
+}
+
 export function ThemePage({ country, theme, yearWindow }: Props) {
   const { data, loading, error } = useThemeData(country, theme);
 
@@ -109,7 +114,7 @@ export function ThemePage({ country, theme, yearWindow }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-gray-100">
-        {country} — {theme.charAt(0).toUpperCase() + theme.slice(1)}
+        {country} — {displayTheme(theme)}
       </h1>
 
       <ChartGrid data={data} filteredIndices={filteredIndices} />
