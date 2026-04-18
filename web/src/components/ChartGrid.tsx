@@ -1,6 +1,17 @@
+import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import type { ThemeData } from "../types";
 import { LatestSnapshot } from "./LatestSnapshot";
+
+function useIsMobile(breakpoint = 768): boolean {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 interface Props {
   data: ThemeData;
@@ -16,6 +27,7 @@ function nullableTrace(dates: string[], values: (number | null)[]) {
 }
 
 export function ChartGrid({ data, filteredIndices }: Props) {
+  const isMobile = useIsMobile();
   const dates = filteredIndices.map((i) => data.dates[i]);
   const inputCols = Object.keys(data.inputs);
 
@@ -154,15 +166,21 @@ export function ChartGrid({ data, filteredIndices }: Props) {
       <div>
         <Plot
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data={[{ z: heatZ, x: last24Dates, y: inputCols, type: "heatmap", colorscale: "RdBu", zmid: 0, showscale: true } as any]}
+          data={[{
+            z: heatZ, x: last24Dates, y: inputCols, type: "heatmap",
+            colorscale: "RdBu", zmid: 0, showscale: true,
+            ...(isMobile ? { colorbar: { thickness: 10, len: 0.6 } } : {}),
+          } as any]}
           layout={{
-            title: { text: "Surprises (last 24 months)", font: { color: "#e5e7eb", size: 13 } },
+            title: { text: "Surprises (last 24 months)", font: { color: "#e5e7eb", size: isMobile ? 12 : 13 } },
             paper_bgcolor: "#111827",
             plot_bgcolor: "#111827",
             font: { color: "#9ca3af" },
-            margin: { t: 35, r: 15, b: 60, l: 220 },
-            xaxis: { tickfont: { size: 9 }, tickangle: -45 },
-            yaxis: { tickfont: { size: 9 }, autorange: "reversed" },
+            margin: isMobile
+              ? { t: 40, r: 30, b: 60, l: 150 }
+              : { t: 35, r: 15, b: 60, l: 220 },
+            xaxis: { tickfont: { size: isMobile ? 8 : 9 }, tickangle: -45 },
+            yaxis: { tickfont: { size: isMobile ? 8 : 9 }, autorange: "reversed" },
             height: 280,
           }}
           config={{ displayModeBar: false, responsive: true }}
