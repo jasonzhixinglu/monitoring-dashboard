@@ -31,37 +31,32 @@ export function NowcastPage({ country }: Props) {
   const { data, loading, error } = useNowcastData(country);
   const [diagOpen, setDiagOpen] = useState(false);
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64 text-gray-400">Loading {country} nowcast…</div>;
-  }
-  if (error || !data) {
-    return <div className="flex items-center justify-center h-64 text-red-400">Error: {error ?? "Unknown error"}</div>;
-  }
+  // All hooks must be called unconditionally before any early returns
+  const derived = useMemo(() => {
+    if (!data) return null;
 
-  // Surprise heatmap: collect union of dates, take last 24
-  const surpCols = Object.keys(data.surprises);
-  const allSurpDates = Array.from(
-    new Set(surpCols.flatMap((c) => data.surprises[c].dates))
-  ).sort();
-  const last24SurpDates = allSurpDates.slice(-24);
-  const heatZ = surpCols.map((col) => {
-    const dateMap = new Map(data.surprises[col].dates.map((d, i) => [d, data.surprises[col].values[i]]));
-    return last24SurpDates.map((d) => dateMap.get(d) ?? null);
-  });
+    const surpCols = Object.keys(data.surprises);
+    const allSurpDates = Array.from(
+      new Set(surpCols.flatMap((c) => data.surprises[c].dates))
+    ).sort();
+    const last24SurpDates = allSurpDates.slice(-24);
+    const heatZ = surpCols.map((col) => {
+      const dateMap = new Map(
+        data.surprises[col].dates.map((d, i) => [d, data.surprises[col].values[i]])
+      );
+      return last24SurpDates.map((d) => dateMap.get(d) ?? null);
+    });
 
-  // Contributions
-  const contribKeys = Object.keys(data.contributions).filter((k) => data.contributions[k] != null);
+    const contribKeys = Object.keys(data.contributions).filter((k) => data.contributions[k] != null);
 
-  // Input data table: last 24 dates from first indicator
-  const inputCols = Object.keys(data.input_data);
-  const allInputDates = inputCols.length > 0
-    ? Array.from(new Set(inputCols.flatMap((c) => data.input_data[c].dates))).sort()
-    : [];
-  const last24InputDates = allInputDates.slice(-24);
+    const inputCols = Object.keys(data.input_data);
+    const allInputDates = inputCols.length > 0
+      ? Array.from(new Set(inputCols.flatMap((c) => data.input_data[c].dates))).sort()
+      : [];
+    const last24InputDates = allInputDates.slice(-24);
 
-  const csvContent = useMemo(() => {
-    const header = ["date", ...inputCols].join(",");
-    const rows = last24InputDates.map((d) => {
+    const csvHeader = ["date", ...inputCols].join(",");
+    const csvRows = last24InputDates.map((d) => {
       const vals = inputCols.map((col) => {
         const s = data.input_data[col];
         const i = s.dates.indexOf(d);
@@ -69,24 +64,31 @@ export function NowcastPage({ country }: Props) {
       });
       return [d, ...vals].join(",");
     });
-    return [header, ...rows].join("\n");
-  }, [data, inputCols, last24InputDates]);
+    const csvContent = [csvHeader, ...csvRows].join("\n");
 
-  const diagText = useMemo(() => {
-    const cols = Object.keys(data.loadings);
-    if (!cols.length) return null;
-    const lines = [
+    const loadingCols = Object.keys(data.loadings);
+    const diagLines = loadingCols.length > 0 ? [
       `${"Series".padEnd(30)} ${"R²".padStart(6)}  ${"F1".padStart(8)}  ${"F2".padStart(8)}`,
       "─".repeat(58),
-      ...cols.map((col) => {
+      ...loadingCols.map((col) => {
         const r2 = (data.r_squared[col] ?? 0).toFixed(3);
         const f1 = (data.loadings[col]?.[0] ?? 0).toFixed(3);
         const f2 = (data.loadings[col]?.[1] ?? 0).toFixed(3);
         return `${col.padEnd(30)} ${r2.padStart(6)}  ${f1.padStart(8)}  ${f2.padStart(8)}`;
       }),
-    ];
-    return lines.join("\n");
+    ].join("\n") : null;
+
+    return { surpCols, last24SurpDates, heatZ, contribKeys, inputCols, last24InputDates, csvContent, diagLines };
   }, [data]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64 text-gray-400">Loading {country} nowcast…</div>;
+  }
+  if (error || !data || !derived) {
+    return <div className="flex items-center justify-center h-64 text-red-400">Error: {error ?? "No data"}</div>;
+  }
+
+  const { surpCols, last24SurpDates, heatZ, contribKeys, inputCols, last24InputDates, csvContent, diagLines } = derived;
 
   return (
     <div className="flex flex-col gap-6">
@@ -143,7 +145,7 @@ export function NowcastPage({ country }: Props) {
         )}
       </div>
 
-      {/* Data table */}
+      {/* Input data table */}
       <div className="bg-gray-900 rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-400">Input series — last 24 months</span>
@@ -188,7 +190,7 @@ export function NowcastPage({ country }: Props) {
       </div>
 
       {/* Model diagnostics */}
-      {diagText && (
+      {diagLines && (
         <div className="border border-gray-700 rounded-lg overflow-hidden">
           <button
             className="w-full flex items-center justify-between px-4 py-2 bg-gray-800 text-sm font-medium text-gray-200"
@@ -199,7 +201,7 @@ export function NowcastPage({ country }: Props) {
           </button>
           {diagOpen && (
             <div className="bg-gray-950 p-4 overflow-x-auto">
-              <pre className="text-xs font-mono text-gray-300 leading-5">{diagText}</pre>
+              <pre className="text-xs font-mono text-gray-300 leading-5">{diagLines}</pre>
             </div>
           )}
         </div>

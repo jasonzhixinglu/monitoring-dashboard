@@ -27,7 +27,7 @@ function formatTable(data: ThemeData, indices: number[]): string {
   const hasFactor = !!data.factor;
 
   // Column widths: max of header and any data value
-  const dateW = 10;
+  const dateW = 7;
   const factorW = hasFactor ? 8 : 0;
   const colWidths = cols.map((col) => Math.max(col.length, 7));
 
@@ -58,7 +58,7 @@ function formatTable(data: ThemeData, indices: number[]): string {
   // Rows (most-recent first for readability)
   const rows = [...indices].reverse().map((i) => {
     const parts = [
-      pad(data.dates[i], dateW, false),
+      pad(data.dates[i].slice(0, 7), dateW, false),
       ...(hasFactor ? [pad(fmtNum(data.factor!.values[i], 3), factorW)] : []),
       ...cols.map((col, j) => pad(fmtNum(data.inputs[col].values[i], 2), colWidths[j])),
     ];

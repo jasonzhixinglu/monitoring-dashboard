@@ -68,6 +68,8 @@ def build_theme_df(indicators: list) -> pd.DataFrame:
         return pd.DataFrame()
     df = pd.DataFrame(series)
     df.index.name = "date"
+    indicator_cols = list(series.keys())
+    df = df.dropna(how="all", subset=indicator_cols)
     return df.reset_index()
 
 

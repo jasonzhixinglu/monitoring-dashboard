@@ -5,36 +5,43 @@ interface Props {
   data: NowcastData;
 }
 
+function toQuarterLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  const q = Math.floor(d.getMonth() / 3) + 1;
+  return `${d.getFullYear()}-Q${q}`;
+}
+
 export function GDPChart({ data }: Props) {
   const { target_history, nowcast_value, nowcast_ci, nowcast_quarter } = data;
 
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
 
-  const histDates: string[] = [];
+  const histLabels: string[] = [];
   const histValues: (number | null)[] = [];
   for (let i = 0; i < target_history.dates.length; i++) {
     if (new Date(target_history.dates[i]) >= tenYearsAgo) {
-      histDates.push(target_history.dates[i]);
+      histLabels.push(toQuarterLabel(target_history.dates[i]));
       histValues.push(target_history.values[i]);
     }
   }
 
-  // Midpoint of Q1 2026 as the nowcast x-position
-  const ncDate = "2026-02-15";
+  // Nowcast shown as the next quarter after last history point
+  const ncLabel = nowcast_quarter; // e.g. "Q1 2026"
+  const ncLabelFormatted = ncLabel.replace(/^Q(\d) (\d{4})$/, "$2-Q$1"); // "2026-Q1"
 
   return (
     <Plot
       data={[
         {
-          x: histDates,
+          x: histLabels,
           y: histValues,
           type: "bar",
           name: "GDP Growth",
           marker: { color: "#4b5563" },
         },
         {
-          x: [ncDate],
+          x: [ncLabelFormatted],
           y: [nowcast_value],
           type: "scatter",
           mode: "markers",
@@ -56,8 +63,8 @@ export function GDPChart({ data }: Props) {
         paper_bgcolor: "#111827",
         plot_bgcolor: "#111827",
         font: { color: "#9ca3af" },
-        margin: { t: 35, r: 15, b: 40, l: 55 },
-        xaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
+        margin: { t: 35, r: 15, b: 60, l: 55 },
+        xaxis: { gridcolor: "#374151", tickfont: { size: 9 }, tickangle: -45 },
         yaxis: { gridcolor: "#374151", tickfont: { size: 10 }, title: { text: "% QOQAR", font: { size: 10 } } },
         legend: { font: { size: 10 } },
         height: 260,
