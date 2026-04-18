@@ -81,7 +81,7 @@ export function ChartGrid({ data, filteredIndices }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
       {/* Top-left: factor + indicators stacked */}
       <div className="flex flex-col gap-3">
         {factorTrace ? (

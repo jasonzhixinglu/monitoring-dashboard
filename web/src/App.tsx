@@ -9,7 +9,7 @@ export default function App() {
   const [yearWindow, setYearWindow] = useState<YearWindow>(10);
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-gray-100">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-950 text-gray-100">
       <Sidebar
         country={country}
         theme={theme}

@@ -13,8 +13,8 @@ interface Props {
 
 export function Sidebar({ country, theme, yearWindow, onCountry, onTheme, onYearWindow }: Props) {
   return (
-    <aside className="w-52 shrink-0 bg-gray-900 text-gray-100 flex flex-col gap-6 p-4 min-h-screen">
-      <div className="text-lg font-semibold tracking-wide border-b border-gray-700 pb-2">
+    <aside className="w-full md:w-52 shrink-0 bg-gray-900 text-gray-100 flex flex-row flex-wrap items-end md:flex-col gap-3 md:gap-6 px-3 py-2 md:p-4 md:min-h-screen">
+      <div className="hidden md:block text-lg font-semibold tracking-wide border-b border-gray-700 pb-2 w-full">
         Controls
       </div>
 
@@ -56,7 +56,7 @@ export function Sidebar({ country, theme, yearWindow, onCountry, onTheme, onYear
         </select>
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="hidden md:flex flex-col gap-1">
         <label className="text-xs text-gray-400 uppercase tracking-wider">Outlier removal</label>
         <div className="flex items-center gap-2 opacity-50 cursor-not-allowed select-none">
           <div className="w-8 h-4 bg-blue-500 rounded-full relative">
