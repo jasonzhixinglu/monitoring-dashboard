@@ -21,14 +21,38 @@ function useIsMobile(breakpoint = 768): boolean {
 }
 
 function NowcastSnapshot({ data }: { data: NowcastData }) {
-  const { nowcast_value, nowcast_ci, vintage_date, nowcast_quarter } = data;
+  const { nowcast_value, nowcast_ci, vintage_date, nowcast_quarter, pseudo_vintages } = data;
   const sep = "─".repeat(34);
+
+  // Last 6 non-null entries, descending
+  const vintageRows: { date: string; value: number }[] = [];
+  for (let i = pseudo_vintages.dates.length - 1; i >= 0 && vintageRows.length < 6; i--) {
+    const v = pseudo_vintages.values[i];
+    if (v !== null && v !== undefined) {
+      vintageRows.push({ date: pseudo_vintages.dates[i], value: v });
+    }
+  }
+
+  const evolutionLines = [
+    "",
+    "Recent Evolution",
+    sep,
+    ...vintageRows.map((row, i) => {
+      const revision = i === 0 ? "—" : (() => {
+        const diff = row.value - vintageRows[i - 1].value;
+        return (diff >= 0 ? "+" : "") + diff.toFixed(2);
+      })();
+      return `${row.date.padEnd(18)} ${(row.value.toFixed(2) + "%").padStart(7)}   ${revision.padStart(6)}`;
+    }),
+  ];
+
   const lines = [
     "GDP Nowcast",
     sep,
     `${nowcast_quarter.padEnd(18)} ${nowcast_value.toFixed(2)}% QOQAR`,
     `${"95% CI".padEnd(18)} [${nowcast_ci[0].toFixed(2)}, ${nowcast_ci[1].toFixed(2)}]`,
     `${"As of".padEnd(18)} ${vintage_date}`,
+    ...evolutionLines,
   ];
   return (
     <div className="bg-gray-950 rounded-lg p-4 h-full">

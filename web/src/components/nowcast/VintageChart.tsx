@@ -34,7 +34,7 @@ export function VintageChart({ data }: Props) {
         },
       ]}
       layout={{
-        title: { text: "Nowcast Evolution (Pseudo-Vintages)", font: { color: "#e5e7eb", size: 13 } },
+        title: { text: "Nowcast Evolution", font: { color: "#e5e7eb", size: 13 } },
         paper_bgcolor: "#111827",
         plot_bgcolor: "#111827",
         font: { color: "#9ca3af" },
