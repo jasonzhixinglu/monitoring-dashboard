@@ -88,7 +88,7 @@ export function ThemePage({ country, theme, yearWindow }: Props) {
 
   const tableText = useMemo(() => {
     if (!data) return null;
-    return formatTable(data, filteredIndices.slice(-24));
+    return formatTable(data, filteredIndices.slice(-12));
   }, [data, filteredIndices]);
 
   if (loading) {

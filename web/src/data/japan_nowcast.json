@@ -4097,6 +4097,16 @@
       ]
     }
   },
+  "transforms": {
+    "Industrial Production": "3m3mar",
+    "Retail Sales": "3m3mar",
+    "Machinery Orders": "3m3mar",
+    "Real Exports": "3m3mar",
+    "Total Employment": "3m3mar",
+    "Consumer Confidence": "Level",
+    "Markit Manufacturing PMI": "Level",
+    "Markit Services PMI": "Level"
+  },
   "surprises": {
     "Industrial Production": {
       "dates": [

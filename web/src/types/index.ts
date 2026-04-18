@@ -42,6 +42,7 @@ export interface NowcastData {
   target_history: NowcastSeriesData;
   pseudo_vintages: NowcastSeriesData;
   input_data: Record<string, NowcastSeriesData>;
+  transforms?: Record<string, string>;
   surprises: Record<string, NowcastSeriesData>;
   contributions: Record<string, number>;
   loadings: Record<string, number[]>;

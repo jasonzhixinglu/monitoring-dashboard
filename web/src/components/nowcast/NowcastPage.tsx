@@ -56,10 +56,41 @@ export function NowcastPage({ country, yearWindow }: Props) {
     const allInputDates = inputCols.length > 0
       ? Array.from(new Set(inputCols.flatMap((c) => data.input_data[c].dates))).sort()
       : [];
-    const last24InputDates = allInputDates.slice(-24);
+    const last12InputDates = allInputDates.slice(-12);
 
+    // Build display column names: "Industrial Production [3m3mar]"
+    const transforms = data.transforms ?? {};
+    const displayCols = inputCols.map((col) => {
+      const t = transforms[col];
+      return t ? `${col} [${t}]` : col;
+    });
+
+    // Monospace table matching monitoring dashboard format
+    const dateW = 7;
+    const colWidths = displayCols.map((c) => Math.max(c.length, 7));
+    function pad(s: string | null | undefined, w: number, right = true): string {
+      const str = s ?? "—";
+      return right ? str.padStart(w) : str.padEnd(w);
+    }
+    const sep = ["─".repeat(dateW), ...colWidths.map((w) => "─".repeat(w))].join("─┼─");
+    const header = [pad("Date", dateW, false), ...displayCols.map((c, j) => pad(c, colWidths[j]))].join(" │ ");
+    const tableRows = [...last12InputDates].reverse().map((d) => {
+      const parts = [
+        pad(d.slice(0, 7), dateW, false),
+        ...inputCols.map((col, j) => {
+          const s = data.input_data[col];
+          const i = s.dates.indexOf(d);
+          const v = i >= 0 ? s.values[i] : null;
+          return pad(v !== null ? v.toFixed(2) : "—", colWidths[j]);
+        }),
+      ];
+      return parts.join(" │ ");
+    });
+    const tableText = [header, sep, ...tableRows].join("\n");
+
+    // CSV uses full date history
     const csvHeader = ["date", ...inputCols].join(",");
-    const csvRows = last24InputDates.map((d) => {
+    const csvRows = allInputDates.map((d) => {
       const vals = inputCols.map((col) => {
         const s = data.input_data[col];
         const i = s.dates.indexOf(d);
@@ -81,7 +112,7 @@ export function NowcastPage({ country, yearWindow }: Props) {
       }),
     ].join("\n") : null;
 
-    return { surpCols, last24SurpDates, heatZ, contribKeys, inputCols, last24InputDates, csvContent, diagLines };
+    return { surpCols, last24SurpDates, heatZ, contribKeys, tableText, csvContent, diagLines };
   }, [data]);
 
   if (loading) {
@@ -91,7 +122,7 @@ export function NowcastPage({ country, yearWindow }: Props) {
     return <div className="flex items-center justify-center h-64 text-red-400">Error: {error ?? "No data"}</div>;
   }
 
-  const { surpCols, last24SurpDates, heatZ, contribKeys, inputCols, last24InputDates, csvContent, diagLines } = derived;
+  const { surpCols, last24SurpDates, heatZ, contribKeys, tableText, csvContent, diagLines } = derived;
 
   return (
     <div className="flex flex-col gap-6">
@@ -148,10 +179,12 @@ export function NowcastPage({ country, yearWindow }: Props) {
         )}
       </div>
 
-      {/* Input data table */}
+      {/* Input data table — monospace, matches monitoring dashboard format */}
       <div className="bg-gray-900 rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">Input series — last 24 months</span>
+          <span className="text-sm text-gray-400">
+            Input series — last 12 months (most recent first)
+          </span>
           <button
             onClick={() => {
               const blob = new Blob([csvContent], { type: "text/csv" });
@@ -162,34 +195,12 @@ export function NowcastPage({ country, yearWindow }: Props) {
             }}
             className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded"
           >
-            Download CSV
+            Download CSV (full history)
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="text-xs font-mono text-gray-300 w-full">
-            <thead>
-              <tr className="border-b border-gray-700 text-gray-400">
-                <th className="text-left pr-4 pb-1">Date</th>
-                {inputCols.map((col) => (
-                  <th key={col} className="text-right pr-2 pb-1">{col.split(" ").slice(0, 2).join(" ")}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...last24InputDates].reverse().map((d) => (
-                <tr key={d} className="border-b border-gray-800">
-                  <td className="pr-4 py-0.5">{d.slice(0, 7)}</td>
-                  {inputCols.map((col) => {
-                    const s = data.input_data[col];
-                    const i = s.dates.indexOf(d);
-                    const v = i >= 0 ? s.values[i] : null;
-                    return <td key={col} className="text-right pr-2">{v !== null ? v.toFixed(2) : "—"}</td>;
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre leading-5">
+          {tableText}
+        </pre>
       </div>
 
       {/* Model diagnostics */}

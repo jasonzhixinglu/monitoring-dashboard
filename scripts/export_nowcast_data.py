@@ -76,6 +76,15 @@ def export_country(country: str) -> dict:
     hist = result["target_history"].dropna()
     hist_json = _series_to_json(hist)
 
+    # Transforms map: indicator label → tag string for display
+    _TAG = {"level": "Level", "yoy": "YoY", "mom": "MoM", "3m3mar": "3m3mar", "qoqar": "QOQAR"}
+    config = NOWCAST_COUNTRIES[country]
+    transforms_json = {
+        ind["label"]: _TAG.get(ind["transform"], ind["transform"])
+        for ind in config["indicators"]
+        if ind.get("in_model", True)
+    }
+
     # Input data (monthly indicators, transformed)
     input_df = result["input_data"]
     input_json = {}
@@ -140,6 +149,7 @@ def export_country(country: str) -> dict:
             "values": v_values,
         },
         "input_data": input_json,
+        "transforms": transforms_json,
         "surprises": surprises_json,
         "contributions": contributions,
         "loadings": loadings_json,

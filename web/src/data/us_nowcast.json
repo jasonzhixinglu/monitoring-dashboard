@@ -4141,6 +4141,16 @@
       ]
     }
   },
+  "transforms": {
+    "Industrial Production": "3m3mar",
+    "Retail Sales": "3m3mar",
+    "Manufacturing Shipments": "3m3mar",
+    "Personal Consumption": "3m3mar",
+    "Light Vehicle Sales": "3m3mar",
+    "Insured Unemployment Rate": "Level",
+    "ISM Manufacturing PMI": "Level",
+    "Consumer Confidence": "Level"
+  },
   "surprises": {
     "Industrial Production": {
       "dates": [
