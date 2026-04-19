@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import type { Country, Theme, YearWindow, ThemeData } from "../types";
 import { useThemeData } from "../hooks/useThemeData";
 import { ChartGrid } from "./ChartGrid";
-import { ModelDiagnostics } from "./ModelDiagnostics";
+import { DataTable } from "./shared/DataTable";
+import { ModelDiagnostics } from "./shared/ModelDiagnostics";
+import type { DiagEntry } from "./shared/ModelDiagnostics";
 
 interface Props {
   country: Country;
@@ -26,7 +28,6 @@ function formatTable(data: ThemeData, indices: number[]): string {
   const cols = Object.keys(data.inputs);
   const hasFactor = !!data.factor;
 
-  // Column widths: max of header and any data value
   const dateW = 7;
   const factorW = hasFactor ? 8 : 0;
   const colWidths = cols.map((col) => Math.max(col.length, 7));
@@ -47,7 +48,6 @@ function formatTable(data: ThemeData, indices: number[]): string {
   ];
   const sep = sepParts.join("─┼─");
 
-  // Header
   const hdrParts = [
     pad("Date", dateW, false),
     ...(hasFactor ? [pad("Factor", factorW)] : []),
@@ -55,7 +55,6 @@ function formatTable(data: ThemeData, indices: number[]): string {
   ];
   const header = hdrParts.join(" │ ");
 
-  // Rows (most-recent first for readability)
   const rows = [...indices].reverse().map((i) => {
     const parts = [
       pad(data.dates[i].slice(0, 7), dateW, false),
@@ -91,6 +90,17 @@ export function ThemePage({ country, theme, yearWindow }: Props) {
     return formatTable(data, filteredIndices.slice(-12));
   }, [data, filteredIndices]);
 
+  const csvContent = useMemo(() => (data ? buildCsv(data) : ""), [data]);
+
+  const diagEntries = useMemo((): DiagEntry[] => {
+    if (!data?.diagnostics) return [];
+    return Object.keys(data.diagnostics.loadings).map((col) => ({
+      label: col,
+      r2: data.diagnostics!.r_squared[col] ?? 0,
+      loadings: [data.diagnostics!.loadings[col] ?? 0],
+    }));
+  }, [data]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-400">
@@ -107,10 +117,6 @@ export function ThemePage({ country, theme, yearWindow }: Props) {
     );
   }
 
-  const csvContent = buildCsv(data);
-  const csvBlob = new Blob([csvContent], { type: "text/csv" });
-  const csvUrl = URL.createObjectURL(csvBlob);
-
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold text-gray-100">
@@ -120,26 +126,15 @@ export function ThemePage({ country, theme, yearWindow }: Props) {
       <ChartGrid data={data} filteredIndices={filteredIndices} />
 
       {tableText && (
-        <div className="bg-gray-900 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-400">
-              Factor + transformed inputs — last 24 months (most recent first)
-            </span>
-            <a
-              href={csvUrl}
-              download={`${country.toLowerCase()}_${theme}_factor_inputs.csv`}
-              className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded"
-            >
-              Download CSV (full history)
-            </a>
-          </div>
-          <pre className="text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre leading-5">
-            {tableText}
-          </pre>
-        </div>
+        <DataTable
+          tableText={tableText}
+          csvContent={csvContent}
+          filename={`${country.toLowerCase()}_${theme}_factor_inputs.csv`}
+          description="Factor + transformed inputs — last 12 months (most recent first)"
+        />
       )}
 
-      <ModelDiagnostics data={data} />
+      <ModelDiagnostics entries={diagEntries} />
     </div>
   );
 }

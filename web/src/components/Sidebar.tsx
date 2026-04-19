@@ -1,7 +1,5 @@
 import type { Country, Theme, YearWindow, Mode, NowcastCountry, NowcastYearWindow } from "../types";
-
-const YEAR_OPTIONS: YearWindow[] = [2, 3, 5, 10, 15, 20];
-const NOWCAST_YEAR_OPTIONS: NowcastYearWindow[] = [3, 5, 10, 20];
+import { YearWindowSelector } from "./shared/YearWindowSelector";
 
 interface Props {
   mode: Mode;
@@ -71,18 +69,7 @@ export function Sidebar({ mode, country, theme, yearWindow, nowcastCountry, nowc
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 uppercase tracking-wider">Year window</label>
-            <select
-              className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={yearWindow}
-              onChange={(e) => onYearWindow(Number(e.target.value) as YearWindow)}
-            >
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={y}>{y} years</option>
-              ))}
-            </select>
-          </div>
+          <YearWindowSelector value={yearWindow} onChange={(y) => onYearWindow(y as YearWindow)} />
 
           <div className="hidden md:flex flex-col gap-1">
             <label className="text-xs text-gray-400 uppercase tracking-wider">Outlier removal</label>
@@ -108,18 +95,7 @@ export function Sidebar({ mode, country, theme, yearWindow, nowcastCountry, nowc
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 uppercase tracking-wider">Year window</label>
-            <select
-              className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={nowcastYearWindow}
-              onChange={(e) => onNowcastYearWindow(Number(e.target.value) as NowcastYearWindow)}
-            >
-              {NOWCAST_YEAR_OPTIONS.map((y) => (
-                <option key={y} value={y}>{y} years</option>
-              ))}
-            </select>
-          </div>
+          <YearWindowSelector value={nowcastYearWindow} onChange={(y) => onNowcastYearWindow(y as NowcastYearWindow)} />
         </>
       )}
     </aside>

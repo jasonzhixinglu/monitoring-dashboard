@@ -8,7 +8,7 @@ export default function App() {
   const [mode, setMode] = useState<Mode>("monitoring");
   const [country, setCountry] = useState<Country>("China");
   const [theme, setTheme] = useState<Theme>("activity");
-  const [yearWindow, setYearWindow] = useState<YearWindow>(10);
+  const [yearWindow, setYearWindow] = useState<YearWindow>(5);
   const [nowcastCountry, setNowcastCountry] = useState<NowcastCountry>("US");
   const [nowcastYearWindow, setNowcastYearWindow] = useState<NowcastYearWindow>(5);
 

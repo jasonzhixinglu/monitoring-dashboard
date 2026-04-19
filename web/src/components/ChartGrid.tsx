@@ -1,17 +1,10 @@
-import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import type { ThemeData } from "../types";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { LatestSnapshot } from "./LatestSnapshot";
-
-function useIsMobile(breakpoint = 768): boolean {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < breakpoint);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, [breakpoint]);
-  return isMobile;
-}
+import { SurpriseHeatmap } from "./shared/SurpriseHeatmap";
+import { ContributionsRadial } from "./shared/ContributionsRadial";
+import { PageGrid } from "./shared/PageGrid";
 
 interface Props {
   data: ThemeData;
@@ -31,12 +24,10 @@ export function ChartGrid({ data, filteredIndices }: Props) {
   const dates = filteredIndices.map((i) => data.dates[i]);
   const inputCols = Object.keys(data.inputs);
 
-  // ── Factor chart ──────────────────────────────────────────────────────────
   const factorTrace = data.factor
     ? nullableTrace(dates, filteredIndices.map((i) => data.factor!.values[i]))
     : null;
 
-  // ── Standardized inputs ───────────────────────────────────────────────────
   function zScore(col: string): (number | null)[] {
     const vals = filteredIndices.map((i) => data.inputs[col].values[i]);
     const nonNull = vals.filter((v): v is number => v !== null);
@@ -47,15 +38,12 @@ export function ChartGrid({ data, filteredIndices }: Props) {
     return vals.map((v) => (v === null ? null : (v - mean) / std));
   }
 
-  // ── Surprise heatmap ──────────────────────────────────────────────────────
-  // Compute AR(1) residuals client-side from z-scored inputs
   function ar1Residuals(col: string): (number | null)[] {
     const zs = zScore(col);
     const result: (number | null)[] = new Array(zs.length).fill(null);
     const validIdx = zs.map((v, i) => (v !== null ? i : -1)).filter((i) => i >= 0);
     if (validIdx.length < 4) return result;
     const y = validIdx.map((i) => zs[i] as number);
-    // OLS of y[1:] on y[:-1]
     const n = y.length - 1;
     let sx = 0, sy = 0, sxy = 0, sxx = 0;
     for (let i = 0; i < n; i++) {
@@ -80,154 +68,99 @@ export function ChartGrid({ data, filteredIndices }: Props) {
     });
   });
 
-  // ── Radial contributions (latest residuals × loadings) ────────────────────
-  const contributions: { col: string; value: number }[] = [];
-  if (data.diagnostics) {
-    for (const col of inputCols) {
-      const loading = data.diagnostics.loadings[col];
-      if (loading === undefined) continue;
+  const contributions = (() => {
+    if (!data.diagnostics) return [];
+    return inputCols.flatMap((col) => {
+      const loading = data.diagnostics!.loadings[col];
+      if (loading === undefined) return [];
       const resids = ar1Residuals(col);
       const lastResid = [...resids].reverse().find((v) => v !== null) ?? null;
-      if (lastResid !== null) contributions.push({ col, value: loading * lastResid });
-    }
-  }
+      if (lastResid === null) return [];
+      return [{ label: col, value: loading * lastResid }];
+    });
+  })();
 
-  return (
-    <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
-      {/* Top-left: factor + indicators stacked */}
-      <div className="flex flex-col gap-3">
-        {factorTrace ? (
-          <Plot
-            data={[
-              {
-                ...factorTrace,
-                type: "scatter",
-                mode: "lines",
-                name: "Factor",
-                line: { color: "#60a5fa", width: 2 },
-              },
-              {
-                x: [dates[0], dates[dates.length - 1]],
-                y: [0, 0],
-                type: "scatter",
-                mode: "lines",
-                line: { color: "#6b7280", dash: "dash", width: 1 },
-                showlegend: false,
-                hoverinfo: "skip",
-              },
-            ]}
-            layout={{
-              title: { text: "Common Factor", font: { color: "#e5e7eb", size: 13 } },
-              paper_bgcolor: "#111827",
-              plot_bgcolor: "#111827",
-              font: { color: "#9ca3af" },
-              margin: { t: 35, r: 15, b: 40, l: 45 },
-              xaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
-              yaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
-              legend: { font: { size: 10 } },
-              height: 220,
-            }}
-            config={{ displayModeBar: false, responsive: true }}
-            style={{ width: "100%" }}
-          />
-        ) : null}
-
+  const topLeft = (
+    <div className="flex flex-col gap-3">
+      {factorTrace && (
         <Plot
-          data={inputCols.map((col, i) => ({
-            x: dates,
-            y: zScore(col),
-            type: "scatter",
-            mode: "lines",
-            name: col,
-            line: { color: PALETTE[i % PALETTE.length], width: 1.5 },
-          }))}
+          data={[
+            {
+              ...factorTrace,
+              type: "scatter",
+              mode: "lines",
+              name: "Factor",
+              line: { color: "#60a5fa", width: 2 },
+            },
+            {
+              x: [dates[0], dates[dates.length - 1]],
+              y: [0, 0],
+              type: "scatter",
+              mode: "lines",
+              line: { color: "#6b7280", dash: "dash", width: 1 },
+              showlegend: false,
+              hoverinfo: "skip",
+            },
+          ]}
           layout={{
-            title: { text: "Standardized Indicators", font: { color: "#e5e7eb", size: 13 } },
+            title: { text: "Common Factor", font: { color: "#e5e7eb", size: 13 } },
             paper_bgcolor: "#111827",
             plot_bgcolor: "#111827",
             font: { color: "#9ca3af" },
             margin: { t: 35, r: 15, b: 40, l: 45 },
             xaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
             yaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
-            legend: { font: { size: 9 }, orientation: "h", y: -0.25 },
-            height: 260,
+            legend: { font: { size: 10 } },
+            height: 220,
           }}
           config={{ displayModeBar: false, responsive: true }}
           style={{ width: "100%" }}
         />
-      </div>
-
-      {/* Top-right: latest snapshot */}
-      <div>
-        <LatestSnapshot data={data} />
-      </div>
-
-      {/* Bottom-left: surprise heatmap */}
-      <div>
-        <Plot
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data={[{
-            z: heatZ, x: last24Dates, y: inputCols, type: "heatmap",
-            colorscale: "RdBu", zmid: 0, showscale: true,
-            ...(isMobile ? { colorbar: { thickness: 10, len: 0.6 } } : {}),
-          } as any]}
-          layout={{
-            title: { text: "Surprises (last 24 months)", font: { color: "#e5e7eb", size: isMobile ? 12 : 13 } },
-            paper_bgcolor: "#111827",
-            plot_bgcolor: "#111827",
-            font: { color: "#9ca3af" },
-            margin: isMobile
-              ? { t: 40, r: 30, b: 60, l: 150 }
-              : { t: 35, r: 15, b: 60, l: 220 },
-            xaxis: { tickfont: { size: isMobile ? 8 : 9 }, tickangle: -45 },
-            yaxis: { tickfont: { size: isMobile ? 8 : 9 }, autorange: "reversed" },
-            height: 280,
-          }}
-          config={{ displayModeBar: false, responsive: true }}
-          style={{ width: "100%" }}
-        />
-      </div>
-
-      {/* Bottom-right: radial contributions */}
-      <div>
-        {contributions.length > 0 ? (
-          <Plot
-            data={[
-              {
-                type: "barpolar",
-                r: contributions.map((c) => Math.abs(c.value)),
-                theta: contributions.map((c) => c.col),
-                marker: {
-                  color: contributions.map((c) =>
-                    c.value >= 0 ? "#60a5fa" : "#f87171"
-                  ),
-                },
-                name: "Contribution",
-              },
-            ]}
-            layout={{
-              title: { text: "Factor Contributions (latest)", font: { color: "#e5e7eb", size: 13 } },
-              paper_bgcolor: "#111827",
-              plot_bgcolor: "#111827",
-              font: { color: "#9ca3af", size: 9 },
-              polar: {
-                bgcolor: "#1f2937",
-                angularaxis: { tickfont: { size: 9 }, gridcolor: "#374151" },
-                radialaxis: { gridcolor: "#374151" },
-              },
-              margin: { t: 40, r: 20, b: 20, l: 20 },
-              height: 280,
-              showlegend: false,
-            }}
-            config={{ displayModeBar: false, responsive: true }}
-            style={{ width: "100%" }}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-gray-500 text-sm">
-            No contribution data (PMIs have no factor)
-          </div>
-        )}
-      </div>
+      )}
+      <Plot
+        data={inputCols.map((col, i) => ({
+          x: dates,
+          y: zScore(col),
+          type: "scatter",
+          mode: "lines",
+          name: col,
+          line: { color: PALETTE[i % PALETTE.length], width: 1.5 },
+        }))}
+        layout={{
+          title: { text: "Standardized Indicators", font: { color: "#e5e7eb", size: 13 } },
+          paper_bgcolor: "#111827",
+          plot_bgcolor: "#111827",
+          font: { color: "#9ca3af" },
+          margin: { t: 35, r: 15, b: 40, l: 45 },
+          xaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
+          yaxis: { gridcolor: "#374151", tickfont: { size: 10 } },
+          legend: { font: { size: 9 }, orientation: "h", y: -0.25 },
+          height: 260,
+        }}
+        config={{ displayModeBar: false, responsive: true }}
+        style={{ width: "100%" }}
+      />
     </div>
+  );
+
+  return (
+    <PageGrid
+      topLeft={topLeft}
+      topRight={<LatestSnapshot data={data} />}
+      bottomLeft={
+        <SurpriseHeatmap
+          cols={inputCols}
+          dates={last24Dates}
+          z={heatZ}
+          isMobile={isMobile}
+        />
+      }
+      bottomRight={
+        <ContributionsRadial
+          contributions={contributions}
+          emptyMessage="No contribution data (PMIs have no factor)"
+        />
+      }
+    />
   );
 }

@@ -23,10 +23,10 @@ export interface ThemeData {
 
 export type Country = "China" | "Japan";
 export type Theme = "activity" | "inflation" | "pmis";
-export type YearWindow = 2 | 3 | 5 | 10 | 15 | 20;
+export type YearWindow = 2 | 5 | 10 | 15 | 20;
 export type Mode = "monitoring" | "nowcasting";
 export type NowcastCountry = "US" | "Japan";
-export type NowcastYearWindow = 3 | 5 | 10 | 20;
+export type NowcastYearWindow = YearWindow;
 
 export interface NowcastSeriesData {
   dates: string[];

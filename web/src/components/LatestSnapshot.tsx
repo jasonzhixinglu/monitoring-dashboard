@@ -1,11 +1,11 @@
 import type { ThemeData } from "../types";
+import { SnapshotBox } from "./shared/SnapshotBox";
 
 interface Props {
   data: ThemeData;
 }
 
 function fmtDate(isoDate: string): string {
-  // "2026-03-01" → "2026-03"
   return isoDate.slice(0, 7);
 }
 
@@ -38,10 +38,9 @@ export function LatestSnapshot({ data }: Props) {
   }
 
   return (
-    <div className="h-full bg-gray-950 rounded-lg p-3 overflow-auto">
-      <pre className="text-xs text-green-300 font-mono leading-5 whitespace-pre">
-        {lines.join("\n")}
-      </pre>
-    </div>
+    <SnapshotBox
+      lines={lines}
+      outerClassName="h-full bg-gray-950 rounded-lg p-3 overflow-auto"
+    />
   );
 }
