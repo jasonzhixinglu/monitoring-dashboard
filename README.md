@@ -121,6 +121,3 @@ git push
 
 - **Data vintage:** snapshots reflect the export date, not real-time feeds.
 - **Pseudo-vintages:** extrapolated from assumed fixed release dates, not real-time data releases.
-- **Japan GDP:** `jsngpcp@japan` is already in SAAR Q/Q % change format — no transformation applied.
-- **Low R² on sentiment indicators** (Consumer Confidence, PMIs) is expected; these series have low factor loading.
-- **Estimation window:** 20 years (from 2006-01-01) for nowcast models.
