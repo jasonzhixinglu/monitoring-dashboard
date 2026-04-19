@@ -6,11 +6,11 @@ interface Props {
   yearWindow: number;
 }
 
-// Parse "YYYY-MM-DD" → quarter label "2025-Q4" for hover text
+// Parse "YYYY-MM-DD" → quarter label "2025-Q4" for hover text.
+// Split the string directly to avoid UTC-vs-local-timezone month shifts.
 function toQuarterLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  const q = Math.floor(d.getMonth() / 3) + 1;
-  return `${d.getFullYear()}-Q${q}`;
+  const [year, month] = dateStr.split("-").map(Number);
+  return `${year}-Q${Math.ceil(month / 3)}`;
 }
 
 export function GDPChart({ data, yearWindow }: Props) {
