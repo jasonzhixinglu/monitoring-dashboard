@@ -1,0 +1,37 @@
+{
+  "hash": "cc30c265",
+  "configHash": "2f0e96c5",
+  "lockfileHash": "da49906d",
+  "browserHash": "2d65915b",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "4cd3402d",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "52f1f02c",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "36455b6d",
+      "needsInterop": true
+    },
+    "react-plotly.js": {
+      "src": "../../node_modules/react-plotly.js/react-plotly.js",
+      "file": "react-plotly__js.js",
+      "fileHash": "da9d8705",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-GFWMZNU4": {
+      "file": "chunk-GFWMZNU4.js"
+    }
+  }
+}

@@ -54,6 +54,16 @@ monitoring-dashboard/
 
 ---
 
+## Sandbox
+
+The `sandbox/` directory is an experimental workspace for exploratory chart work on recent data releases. It pairs iterative discussion (in Claude.ai chat) with execution (Claude Code in Codespaces) to rapidly prototype charts before integrating them into the dashboard.
+
+Each session is dated (e.g., `chart_builder_20260419.py`, `output_20260419/`, `WORKFLOW_LOG_20260419.md`). Reusable functions are promoted to `sandbox/utils.py`.
+
+See `sandbox/README.md` for the workflow and current session details.
+
+---
+
 ## Data pipeline
 
 ```
