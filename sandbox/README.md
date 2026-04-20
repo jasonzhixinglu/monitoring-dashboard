@@ -1,6 +1,6 @@
-# Sandbox: Exploratory Chart Work on China Data Releases
+# Sandbox: Exploratory Chart Work
 
-This directory is a sandpit for rapid experimentation on recent China macroeconomic data releases. The workflow pairs iterative discussion (Claude.ai chat) with execution (Claude Code in Codespaces) to prototype charts before potential integration into the monitoring dashboard.
+This directory is a sandpit for rapid experimentation on recent macroeconomic data releases. The workflow pairs iterative discussion (Claude.ai chat) with execution (Claude Code in Codespaces) to prototype charts before potential integration into the monitoring dashboard.
 
 ## Workflow Overview
 
@@ -68,7 +68,7 @@ This directory is a sandpit for rapid experimentation on recent China macroecono
 
 ## Next Session: Efficiency Checklist
 
-To run this workflow faster on the next China data release:
+To run this workflow faster on the next data release:
 
 ### Phase 1: Discovery (5–10 min)
 - [ ] What's the release date? (e.g., Apr 15-16 for March data)
