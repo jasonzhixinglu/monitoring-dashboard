@@ -74,7 +74,7 @@ haver-data (parquet) → src/ (Python) → scripts/export_*.py → web/src/data/
 
 ## Getting started
 
-**Prerequisites:** Python 3.11+, Node 18+, `haver-data` cloned alongside this repo.
+**Prerequisites:** Python 3.11+, Node 18+, `haver-data` cloned alongside this repo. Its `data/data.parquet` is no longer in git: outside the PC that runs the scheduled pull, run `python src/build.py` in `haver-data` after cloning.
 
 ```bash
 # Install Python dependencies
@@ -95,8 +95,9 @@ cd web && npm install && npm run dev
 ## Updating data
 
 ```bash
-# Pull latest haver-data
-cd ../haver-data && git pull && cd ../monitoring-dashboard
+# Pull latest haver-data and rebuild its cache (Codespaces or any other machine;
+# skip on the PC that runs the scheduled pull, where it is always current)
+cd ../haver-data && git pull && python src/build.py && cd ../monitoring-dashboard
 
 # Regenerate all JSON
 python scripts/export_dashboard_data.py
